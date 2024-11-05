@@ -2,9 +2,10 @@
 ![](https://mods-data.factorio.com/assets/ad36f974db944b1540ce50a0aea46221f26f7c36.thumb.png)
 [![Github All Releases](https://img.shields.io/github/downloads/remijouannet/graftorio2/total.svg)]()
 
-# [graftorio2](https://mods.factorio.com/mod/graftorio2)
+# [graftorioSA](https://mods.factorio.com/mod/graftorio2)
 
-**Fork of [graftorio](https://github.com/afex/graftorio)**
+**Fork of [graftorio2](https://github.com/remijouannet/graftorio2)**
+**Which is a fork of [graftorio](https://github.com/afex/graftorio)**
 
 [中文文档](./README_cn.md)
 

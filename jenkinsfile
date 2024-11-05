@@ -1,0 +1,65 @@
+pipeline {
+    agent any
+    
+    environment {
+        GITHUB_TOKEN = credentials('git_token')  // Store your GitHub token in Jenkins credentials
+        REPO_OWNER = 'Hesh925'
+        REPO_NAME = 'GraftorioSA'
+        MOD_NAME = 'GraftorioSA'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Package Mod') {
+            steps {
+                script {
+                    def zipName = "${MOD_NAME}-${env.BUILD_NUMBER}.zip"
+                    sh "zip -r ${zipName} ."
+                    archiveArtifacts artifacts: "${zipName}", fingerprint: true
+                }
+            }
+        }
+        
+        stage('Create GitHub Release and Upload') {
+            steps {
+                script {
+                    def zipName = "${MOD_NAME}-${env.BUILD_NUMBER}.zip"
+                    def releaseTag = "v${env.BUILD_NUMBER}"
+                    
+                    // Create a release on GitHub
+                    sh """
+                    curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" -H "Content-Type: application/json" \
+                    -d '{
+                          "tag_name": "${releaseTag}",
+                          "name": "${releaseTag}",
+                          "body": "Automated release by Jenkins",
+                          "draft": true,
+                          "prerelease": false
+                        }' \
+                    https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases
+                    """
+                    
+                    // Get the release ID
+                    def releaseId = sh(script: """
+                    curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
+                    https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/tags/${releaseTag} \
+                    | jq -r .id
+                    """, returnStdout: true).trim()
+                    
+                    // Upload the ZIP file to the release
+                    sh """
+                    curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \
+                    -H "Content-Type: application/zip" \
+                    --data-binary @${zipName} \
+                    https://uploads.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/${releaseId}/assets?name=${zipName}
+                    """
+                }
+            }
+        }
+    }
+}
